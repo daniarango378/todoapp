@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-            fetch-depth: 0
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-lock.txt
 
       - name: Run Black (Formatter)
         run: black backend frontend run.py tests --check
@@ -97,6 +97,56 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build backend image locally for smoke test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker build -t local/task-management-backend:ci -f ./backend/Dockerfile .
+
+      - name: Run backend container smoke test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker run -d --name backend-smoke -p 5000:5000 local/task-management-backend:ci
+          sleep 10
+          curl --fail http://localhost:5000/health
+          docker stop backend-smoke
+          docker rm backend-smoke
+
+      - name: Build frontend image locally for smoke test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker build -t local/task-management-frontend:ci -f ./frontend/Dockerfile .
+
+      - name: Run frontend container smoke test
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker run -d --name frontend-smoke -p 8000:8000 local/task-management-frontend:ci
+          sleep 10
+          curl --fail http://localhost:8000
+          docker stop frontend-smoke
+          docker rm frontend-smoke
+
+      - name: Run Trivy scan on backend image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: local/task-management-backend:ci
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Run Trivy scan on frontend image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: local/task-management-frontend:ci
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
       - name: Build and push backend image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
