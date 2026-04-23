@@ -8,6 +8,9 @@ RUN python frontend/build_frontend.py
 
 WORKDIR /app/frontend/dist
 
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
 CMD ["python", "-m", "http.server", "8000"]
