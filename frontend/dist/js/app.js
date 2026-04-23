@@ -16,7 +16,7 @@ const cancelEditBtn = document.getElementById("cancel-edit-btn");
 const refreshBtn = document.getElementById("refresh-btn");
 const apiBaseUrl = document.getElementById("api-base-url");
 
-apiBaseUrl.textContent = window.taskApi.getBaseUrl();
+apiBaseUrl.textContent = globalThis.taskApi.getBaseUrl();
 
 function setFeedback(message, isError = false) {
   feedback.textContent = message;
@@ -79,7 +79,7 @@ function renderTasks(tasks) {
 
 async function loadTasks() {
   try {
-    const tasks = await window.taskApi.listTasks();
+    const tasks = await globalThis.taskApi.listTasks();
     state.tasks = tasks;
     renderTasks(tasks);
     setFeedback("Tasks loaded successfully.");
@@ -99,10 +99,10 @@ async function handleSubmit(event) {
 
   try {
     if (state.editingTaskId) {
-      await window.taskApi.updateTask(state.editingTaskId, payload);
+      await globalThis.taskApi.updateTask(state.editingTaskId, payload);
       setFeedback("Task updated successfully.");
     } else {
-      await window.taskApi.createTask(payload);
+      await globalThis.taskApi.createTask(payload);
       setFeedback("Task created successfully.");
     }
 
@@ -136,7 +136,7 @@ async function handleBoardClick(event) {
 
   if (action === "delete") {
     try {
-      await window.taskApi.deleteTask(taskId);
+      await globalThis.taskApi.deleteTask(taskId);
       if (state.editingTaskId === taskId) {
         resetForm();
       }
@@ -155,7 +155,7 @@ async function handleStatusChange(event) {
 
   const taskId = Number(event.target.dataset.id);
   try {
-    await window.taskApi.updateTaskStatus(taskId, event.target.value);
+    await globalThis.taskApi.updateTaskStatus(taskId, event.target.value);
     setFeedback("Task status updated successfully.");
     await loadTasks();
   } catch (error) {
@@ -172,5 +172,7 @@ refreshBtn.addEventListener("click", loadTasks);
 document.querySelector(".board").addEventListener("click", handleBoardClick);
 document.querySelector(".board").addEventListener("change", handleStatusChange);
 
-resetForm();
-loadTasks();
+document.addEventListener("DOMContentLoaded", () => {
+  resetForm();
+  void loadTasks();
+});
