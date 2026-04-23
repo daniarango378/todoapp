@@ -106,11 +106,19 @@ jobs:
       - name: Run backend container smoke test
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+            set -e
             docker run -d --name backend-smoke -p 5001:5000 local/task-management-backend:ci
-            sleep 10
-            curl --fail http://localhost:5001/health
-            docker stop backend-smoke
-            docker rm backend-smoke
+            sleep 15
+            docker ps -a
+            docker logs backend-smoke
+            curl --retry 5 --retry-delay 2 --retry-connrefused --fail http://localhost:5001/health
+        shell: bash
+
+      - name: Cleanup backend smoke container
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+            docker stop backend-smoke || true
+            docker rm backend-smoke || true
 
       - name: Build frontend image locally for smoke test
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
