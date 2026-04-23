@@ -19,6 +19,7 @@ app = create_app()
 def main() -> None:
     """Run the Flask application using environment-based configuration."""
     app.run(
+        host="0.0.0.0",
         debug=os.environ.get("FLASK_DEBUG", "true").lower() == "true",
         port=int(os.environ.get("BACKEND_PORT", "5000")),
         use_reloader=os.environ.get("FLASK_USE_RELOADER", "true").lower() == "true",

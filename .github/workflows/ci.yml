@@ -107,8 +107,12 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
             set -e
-            docker run -d --name backend-smoke -p 5001:5000 local/task-management-backend:ci
-            sleep 15
+            docker run -d --name backend-smoke -p 5001:5000 \
+            -e FLASK_DEBUG=false \
+            -e FLASK_USE_RELOADER=false \
+            -e BACKEND_PORT=5000 \
+            local/task-management-backend:ci
+            sleep 10
             docker ps -a
             docker logs backend-smoke
             curl --retry 5 --retry-delay 2 --retry-connrefused --fail http://localhost:5001/health
