@@ -1,19 +1,23 @@
-const API_BASE_URL = window.TASK_API_BASE_URL || "http://localhost:5000";
+const API_BASE_URL = globalThis.TASK_API_BASE_URL || "http://localhost:5000";
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
+  const headers = Object.assign(
+    {
       "Content-Type": "application/json",
-      ...(options.headers || {}),
     },
+    options.headers
+  );
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
+    headers,
   });
 
   const contentType = response.headers.get("content-type") || "";
   const body = contentType.includes("application/json") ? await response.json() : null;
 
   if (!response.ok) {
-    const message = body && body.error ? body.error : "Unexpected API error.";
+    const message = body?.error ?? "Unexpected API error.";
     throw new Error(message);
   }
 
@@ -52,4 +56,4 @@ const taskApi = {
   },
 };
 
-window.taskApi = taskApi;
+globalThis.taskApi = taskApi;

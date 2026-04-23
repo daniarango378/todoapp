@@ -24,7 +24,7 @@ def test_app_js_contains_task_loading_logic():
     content = (SRC_DIR / "js" / "app.js").read_text(encoding="utf-8")
 
     assert "async function loadTasks()" in content
-    assert "window.taskApi.listTasks()" in content
+    assert "globalThis.taskApi.listTasks()" in content
     assert 'addEventListener("submit"' in content
 
 

@@ -11,7 +11,7 @@ BACKEND_DIR = CURRENT_DIR.parent
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from app import create_app  # pylint: disable=wrong-import-position
+from app import create_app  # pylint: disable=wrong-import-position  # noqa: E402
 
 app = create_app()
 

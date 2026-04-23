@@ -1,3 +1,5 @@
+"""Utility script to launch the backend and frontend development servers together."""
+
 from __future__ import annotations
 
 import os
@@ -8,18 +10,21 @@ import sys
 import time
 from pathlib import Path
 
+
 ROOT_DIR = Path(__file__).resolve().parent
 DEFAULT_BACKEND_PORT = 5000
 DEFAULT_FRONTEND_PORT = 8000
 
 
 def is_port_available(port: int) -> bool:
+    """Return True if the given TCP port is available on localhost."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return sock.connect_ex(("127.0.0.1", port)) != 0
 
 
 def find_available_port(start_port: int, max_attempts: int = 20) -> int:
+    """Find and return the first available port in the configured search range."""
     for port in range(start_port, start_port + max_attempts):
         if is_port_available(port):
             return port
@@ -31,10 +36,12 @@ def find_available_port(start_port: int, max_attempts: int = 20) -> int:
 def start_process(
     args: list[str], env: dict[str, str] | None = None
 ) -> subprocess.Popen:
+    """Start a subprocess from the project root using the provided arguments."""
     return subprocess.Popen(args, cwd=ROOT_DIR, env=env)
 
 
 def stop_processes(processes: list[subprocess.Popen]) -> None:
+    """Stop all running subprocesses gracefully and force them if needed."""
     for process in processes:
         if process.poll() is None:
             process.terminate()
@@ -48,6 +55,7 @@ def stop_processes(processes: list[subprocess.Popen]) -> None:
 
 
 def main() -> int:
+    """Launch backend and frontend servers with coordinated environment settings."""
     requested_backend_port = int(
         os.environ.get("BACKEND_PORT", str(DEFAULT_BACKEND_PORT))
     )
@@ -70,7 +78,8 @@ def main() -> int:
         start_process([sys.executable, "frontend/serve_frontend.py"], env=frontend_env),
     ]
 
-    def handle_signal(signum, frame):  # noqa: ARG001
+    def handle_signal(_signum, _frame):
+        """Stop child processes when the runner receives a termination signal."""
         stop_processes(processes)
         raise SystemExit(0)
 
