@@ -1,0 +1,268 @@
+:root {
+  --bg: #f4efe7;
+  --bg-accent: #e5d8c8;
+  --panel: rgba(255, 252, 247, 0.9);
+  --text: #1f2933;
+  --muted: #52606d;
+  --border: rgba(82, 96, 109, 0.18);
+  --shadow: 0 18px 45px rgba(31, 41, 51, 0.12);
+  --primary: #c75c2b;
+  --primary-dark: #8f3f1c;
+  --pending: #f5b942;
+  --progress: #3c91e6;
+  --done: #3f8f6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(199, 92, 43, 0.22), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(63, 143, 107, 0.2), transparent 28%),
+    linear-gradient(135deg, var(--bg), #fbf7f1 55%, var(--bg-accent));
+}
+
+.app-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.hero,
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.hero {
+  border-radius: 28px;
+  padding: 28px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 2fr 1fr;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  line-height: 0.98;
+}
+
+.hero-copy {
+  margin: 0;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.hero-card {
+  align-self: stretch;
+  border-radius: 22px;
+  padding: 22px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.65), rgba(199, 92, 43, 0.12));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hero-card span {
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.form-panel,
+.board-column {
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.section-heading h2,
+.column-header h3 {
+  margin: 0;
+}
+
+form {
+  display: grid;
+  gap: 10px;
+}
+
+label {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn,
+.ghost-btn,
+.task-actions button,
+.status-select {
+  padding: 11px 16px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), #de7a4c);
+  color: white;
+  font-weight: 700;
+}
+
+.ghost-btn {
+  background: rgba(31, 41, 51, 0.06);
+  color: var(--text);
+}
+
+.feedback {
+  min-height: 24px;
+  margin: 14px 0 0;
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.board {
+  margin-top: 24px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.column-header span {
+  min-width: 34px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(31, 41, 51, 0.08);
+  font-weight: 700;
+}
+
+.task-list {
+  display: grid;
+  gap: 14px;
+}
+
+.task-card {
+  border-radius: 18px;
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 20px rgba(31, 41, 51, 0.08);
+}
+
+.task-card[data-status="pending"] {
+  border-top: 5px solid var(--pending);
+}
+
+.task-card[data-status="in_progress"] {
+  border-top: 5px solid var(--progress);
+}
+
+.task-card[data-status="done"] {
+  border-top: 5px solid var(--done);
+}
+
+.task-card h4 {
+  margin: 0 0 8px;
+}
+
+.task-card p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.task-actions button,
+.status-select {
+  background: rgba(31, 41, 51, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}

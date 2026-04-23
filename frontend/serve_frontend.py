@@ -3,10 +3,8 @@ from __future__ import annotations
 import os
 import sys
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-from pathlib import Path
 
 from build_frontend import DIST_DIR, build_frontend
-
 
 PORT = int(os.environ.get("FRONTEND_PORT", "8000"))
 API_BASE_URL = os.environ.get("TASK_API_BASE_URL", "http://localhost:5000")

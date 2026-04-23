@@ -4,7 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT_DIR / "src"
 DIST_DIR = ROOT_DIR / "dist"
@@ -26,7 +25,7 @@ def test_app_js_contains_task_loading_logic():
 
     assert "async function loadTasks()" in content
     assert "window.taskApi.listTasks()" in content
-    assert "addEventListener(\"submit\"" in content
+    assert 'addEventListener("submit"' in content
 
 
 def test_api_js_contains_api_functions():
@@ -42,9 +41,9 @@ def test_api_js_contains_api_functions():
 def test_index_html_loads_runtime_config_before_app_scripts():
     content = (SRC_DIR / "index.html").read_text(encoding="utf-8")
 
-    runtime_config_pos = content.index('./js/runtime-config.js')
-    api_pos = content.index('./js/api.js')
-    app_pos = content.index('./js/app.js')
+    runtime_config_pos = content.index("./js/runtime-config.js")
+    api_pos = content.index("./js/api.js")
+    app_pos = content.index("./js/app.js")
 
     assert runtime_config_pos < api_pos < app_pos
 

@@ -4,7 +4,6 @@ from flask import Blueprint, current_app, jsonify, request
 
 from app.services.task_service import TaskNotFoundError, ValidationError
 
-
 tasks_bp = Blueprint("tasks", __name__)
 
 
@@ -55,12 +54,15 @@ def update_task_status(task_id: int):
 @tasks_bp.route("/tasks/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id: int):
     deleted = _service().delete_task(task_id)
-    return jsonify(
-        {
-            "message": "Task deleted successfully.",
-            "task": deleted,
-        }
-    ), 200
+    return (
+        jsonify(
+            {
+                "message": "Task deleted successfully.",
+                "task": deleted,
+            }
+        ),
+        200,
+    )
 
 
 @tasks_bp.errorhandler(TaskNotFoundError)

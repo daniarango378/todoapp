@@ -78,4 +78,6 @@ def test_update_status_raises_error_for_invalid_status(task_service, sample_task
 
 def test_create_task_raises_error_for_empty_title(task_service):
     with pytest.raises(ValidationError):
-        task_service.create_task(title=" ", description="Missing title", status="pending")
+        task_service.create_task(
+            title=" ", description="Missing title", status="pending"
+        )

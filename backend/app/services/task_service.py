@@ -30,7 +30,9 @@ class TaskService:
             raise TaskNotFoundError(f"Task with id {task_id} was not found.")
         return task.to_dict()
 
-    def create_task(self, title: str, description: str = "", status: str = "pending") -> dict:
+    def create_task(
+        self, title: str, description: str = "", status: str = "pending"
+    ) -> dict:
         normalized_title = self._validate_title(title)
         normalized_status = self._validate_status(status)
         task = Task(
@@ -85,7 +87,5 @@ class TaskService:
     @staticmethod
     def _validate_status(status: Optional[str]) -> str:
         if status is None or status not in VALID_STATUSES:
-            raise ValidationError(
-                "Status must be one of: pending, in_progress, done."
-            )
+            raise ValidationError("Status must be one of: pending, in_progress, done.")
         return status

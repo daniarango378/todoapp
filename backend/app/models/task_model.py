@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 VALID_STATUSES = {"pending", "in_progress", "done"}
 
 

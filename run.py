@@ -8,7 +8,6 @@ import sys
 import time
 from pathlib import Path
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 DEFAULT_BACKEND_PORT = 5000
 DEFAULT_FRONTEND_PORT = 8000
@@ -24,10 +23,14 @@ def find_available_port(start_port: int, max_attempts: int = 20) -> int:
     for port in range(start_port, start_port + max_attempts):
         if is_port_available(port):
             return port
-    raise RuntimeError(f"No available port found between {start_port} and {start_port + max_attempts - 1}.")
+    raise RuntimeError(
+        f"No available port found between {start_port} and {start_port + max_attempts - 1}."
+    )
 
 
-def start_process(args: list[str], env: dict[str, str] | None = None) -> subprocess.Popen:
+def start_process(
+    args: list[str], env: dict[str, str] | None = None
+) -> subprocess.Popen:
     return subprocess.Popen(args, cwd=ROOT_DIR, env=env)
 
 
@@ -45,7 +48,9 @@ def stop_processes(processes: list[subprocess.Popen]) -> None:
 
 
 def main() -> int:
-    requested_backend_port = int(os.environ.get("BACKEND_PORT", str(DEFAULT_BACKEND_PORT)))
+    requested_backend_port = int(
+        os.environ.get("BACKEND_PORT", str(DEFAULT_BACKEND_PORT))
+    )
     backend_port = find_available_port(requested_backend_port)
     frontend_port = find_available_port(
         int(os.environ.get("FRONTEND_PORT", str(DEFAULT_FRONTEND_PORT)))

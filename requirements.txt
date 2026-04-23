@@ -1,2 +1,11 @@
 Flask>=3.0.0,<4.0.0
 pytest>=8.0.0,<9.0.0
+flake8
+black
+coverage
+selenium
+webdriver-manager
+pytest-cov
+pytest-html
+gunicorn
+pylint
