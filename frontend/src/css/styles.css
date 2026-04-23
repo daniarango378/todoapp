@@ -87,7 +87,8 @@ body {
   text-transform: uppercase;
   font-size: 0.72rem;
   letter-spacing: 0.14em;
-  color: var(--muted);
+  color: var(--text);
+  font-weight: 700;
 }
 
 .form-panel,
