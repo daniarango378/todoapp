@@ -128,7 +128,7 @@ jobs:
 
       - name: Run Trivy scan on backend image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/task-management-backend:ci
           format: table
@@ -139,7 +139,7 @@ jobs:
 
       - name: Run Trivy scan on frontend image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/task-management-frontend:ci
           format: table
