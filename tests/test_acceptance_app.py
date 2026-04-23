@@ -300,5 +300,5 @@ def test_user_can_cancel_edit_mode(browser):
         Select(
             browser.find_element(By.ID, "status")
         ).first_selected_option.get_attribute("value")
-        == "pending"
+        == "pending"  # test
     )
