@@ -161,7 +161,7 @@ button:hover {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, var(--primary), #de7a4c);
+  background: linear-gradient(135deg, var(--primary-dark), #a84b22);
   color: white;
   font-weight: 700;
 }
