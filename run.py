@@ -10,7 +10,6 @@ import sys
 import time
 from pathlib import Path
 
-
 ROOT_DIR = Path(__file__).resolve().parent
 DEFAULT_BACKEND_PORT = 5000
 DEFAULT_FRONTEND_PORT = 8000
