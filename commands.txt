@@ -1,0 +1,5 @@
+cd infra
+terraform init \
+  -backend-config="bucket=cicd-project-3" \
+  -backend-config="key=todoapp/${TF_VAR_environment_name}/terraform.tfstate" \
+  -backend-config="region=us-east-1"
