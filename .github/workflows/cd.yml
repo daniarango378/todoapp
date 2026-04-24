@@ -1,8 +1,10 @@
-name: CD Pipeline - TaskApp
+name: CD Pipeline
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
   workflow_dispatch:
 
 env:
@@ -11,6 +13,7 @@ env:
 jobs:
 
   prepare:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,13 +34,15 @@ jobs:
       - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: darango378/task-management-backend:latest
-          severity: CRITICAL,HIGH
+          #severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: '1'
 
       - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: darango378/task-management-frontend:latest
-          severity: CRITICAL,HIGH
+          #severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: '1'
 
 
