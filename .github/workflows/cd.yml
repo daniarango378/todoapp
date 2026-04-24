@@ -79,8 +79,7 @@ jobs:
             -var="backend_docker_image_uri=darango378/task-management-backend:latest" \
             -var="frontend_docker_image_uri=darango378/task-management-frontend:latest" \
             -var="vpc_id=${{ vars.VPC_ID }}" \
-            -var='subnet_ids=${{ vars.SUBNET_IDS }}'
-            #-var="subnet_ids=${{ vars.SUBNET_IDS }}" \
+            -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
             -var="backend_public_ip=${{ vars.BACKEND_PUBLIC_IP }}" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
@@ -143,7 +142,7 @@ jobs:
             -var="backend_docker_image_uri=darango378/task-management-backend:latest" \
             -var="frontend_docker_image_uri=darango378/task-management-frontend:latest" \
             -var="vpc_id=${{ vars.VPC_ID }}" \
-            -var="subnet_ids=${{ vars.SUBNET_IDS }}" \
+            -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
             -var="backend_public_ip=${{ vars.BACKEND_PUBLIC_IP }}" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
