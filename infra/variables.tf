@@ -47,7 +47,7 @@ variable "aws_region" {
 variable "backend_port" {
   description = "Puerto en el que escucha el contenedor backend."
   type        = number
-  default     = 5001
+  default     = 5000
 }
 
 variable "frontend_port" {
