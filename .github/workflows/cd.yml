@@ -54,6 +54,14 @@ jobs:
             -backend-config="key=todoapp/staging/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}"
       - working-directory: infra
+      - name: Ensure backend service is active
+        run: |
+          aws ecs update-service \
+            --cluster todoapp-staging-cluster \
+            --service todoapp-staging-backend-service \
+            --desired-count 1 \
+            --output text \
+            --query 'service.serviceName' || true
         run: |
           terraform apply -auto-approve \
             -var="environment_name=staging" \
