@@ -100,6 +100,19 @@ jobs:
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
             -var="backend_public_ip=${{ steps.backend_ip.outputs.ip }}" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
+      - name: Force redeploy frontend with new backend IP
+        run: |
+          aws ecs update-service \
+            --cluster todoapp-staging-cluster \
+            --service todoapp-staging-frontend-service \
+            --force-new-deployment \
+            --query 'service.serviceName' \
+            --output text
+      - name: Wait for frontend to be stable
+        run: |
+          aws ecs wait services-stable \
+            --cluster todoapp-staging-cluster \
+            --services todoapp-staging-frontend-service
       - run: sleep 60
       - id: staging_url
         working-directory: infra
@@ -150,7 +163,6 @@ jobs:
           echo ""
           echo "=== Respuesta del backend ==="
           curl -s --max-time 10 http://${BACKEND_IP}:5001/tasks || echo "Sin respuesta"
-
       - run: |
           export APP_BASE_URL=${{ steps.get_url.outputs.url }}
           echo "APP_BASE_URL = $APP_BASE_URL"
@@ -224,6 +236,19 @@ jobs:
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
             -var="backend_public_ip=${{ steps.backend_ip.outputs.ip }}" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
+      - name: Force redeploy frontend with new backend IP
+        run: |
+          aws ecs update-service \
+            --cluster todoapp-production-cluster \
+            --service todoapp-production-frontend-service \
+            --force-new-deployment \
+            --query 'service.serviceName' \
+            --output text
+      - name: Wait for frontend to be stable
+        run: |
+          aws ecs wait services-stable \
+            --cluster todoapp-production-cluster \
+            --services todoapp-production-frontend-service
       - run: sleep 60
       - id: prod_url
         working-directory: infra
