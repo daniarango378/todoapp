@@ -62,6 +62,7 @@ jobs:
             --desired-count 1 \
             --output text \
             --query 'service.serviceName' || true
+      - name: Terraform Apply -autoapprove
         run: |
           terraform apply -auto-approve \
             -var="environment_name=staging" \
