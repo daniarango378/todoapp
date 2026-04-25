@@ -137,6 +137,8 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Debug frontend config
         run: |
+          - name: Debug frontend config
+        run: |
           URL=${{ steps.get_url.outputs.url }}
           echo "=== HTTP status del frontend ==="
           curl -s -o /dev/null -w "%{http_code}" $URL
@@ -145,7 +147,12 @@ jobs:
           curl -s ${URL}js/runtime-config.js
           echo ""
           echo "=== Test backend directo desde runner ==="
-          curl -s -o /dev/null -w "%{http_code}" ${{ needs.deploy-staging.outputs.url }}
+          BACKEND_IP=$(curl -s ${URL}js/runtime-config.js | grep -oP 'http://\K[^:]+')
+          echo "Backend IP extraida: $BACKEND_IP"
+          curl -s -o /dev/null -w "%{http_code}" http://${BACKEND_IP}:5001/tasks || echo "Backend no alcanzable"
+          echo ""
+          echo "=== Respuesta del backend ==="
+          curl -s http://${BACKEND_IP}:5001/tasks || echo "Sin respuesta"
       - run: |
           export APP_BASE_URL=${{ steps.get_url.outputs.url }}
           echo "APP_BASE_URL = $APP_BASE_URL"
