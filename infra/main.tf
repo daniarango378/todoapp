@@ -214,7 +214,7 @@ resource "aws_lb_target_group" "frontend_tg" {
 
   health_check {
     enabled             = true
-    path                = "/health"
+    path                = "/"
     port                = tostring(var.frontend_port)
     protocol            = "HTTP"
     healthy_threshold   = 2
