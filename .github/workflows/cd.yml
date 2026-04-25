@@ -1,32 +1,24 @@
 name: CD Pipeline
-
 on:
   workflow_run:
     workflows: ["CI Pipeline"]
     types:
       - completed
   workflow_dispatch:
-
 env:
   AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-
 jobs:
-
   prepare:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - run: pip install -r requirements.txt
       - run: python frontend/build_frontend.py
       - run: pytest
-
-
   security-scan:
     runs-on: ubuntu-latest
     needs: prepare
@@ -36,40 +28,31 @@ jobs:
           image-ref: darango378/task-management-backend:latest
           severity: CRITICAL
           exit-code: '1'
-
       - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: darango378/task-management-frontend:latest
           severity: CRITICAL
           exit-code: '1'
-
-
   deploy-staging:
     runs-on: ubuntu-latest
     needs: security-scan
-
     outputs:
       url: ${{ steps.staging_url.outputs.url }}
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: hashicorp/setup-terraform@v3
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
       - working-directory: infra
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="key=todoapp/staging/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}"
-
       - working-directory: infra
         run: |
           terraform apply -auto-approve \
@@ -79,89 +62,105 @@ jobs:
             -var="vpc_id=${{ vars.VPC_ID }}" \
             -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
-            -var="backend_public_ip=${{ vars.BACKEND_PUBLIC_IP }}" \
+            -var="backend_public_ip=0.0.0.0" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
-
+      - name: Wait for backend task to start
+        run: sleep 60
+      - name: Get backend public IP
+        id: backend_ip
+        run: |
+          CLUSTER="todoapp-staging-cluster"
+          SERVICE="todoapp-staging-backend-service"
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster $CLUSTER \
+            --service-name $SERVICE \
+            --query 'taskArns[0]' \
+            --output text)
+          echo "Task ARN: $TASK_ARN"
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster $CLUSTER \
+            --tasks $TASK_ARN \
+            --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
+            --output text)
+          echo "ENI ID: $ENI_ID"
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --query "NetworkInterfaces[0].Association.PublicIp" \
+            --output text)
+          echo "Backend public IP: $PUBLIC_IP"
+          echo "ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+      - working-directory: infra
+        run: |
+          terraform apply -auto-approve \
+            -var="environment_name=staging" \
+            -var="backend_docker_image_uri=darango378/task-management-backend:latest" \
+            -var="frontend_docker_image_uri=darango378/task-management-frontend:latest" \
+            -var="vpc_id=${{ vars.VPC_ID }}" \
+            -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
+            -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
+            -var="backend_public_ip=${{ steps.backend_ip.outputs.ip }}" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}"
       - run: sleep 60
-
       - id: staging_url
         working-directory: infra
         run: |
           URL=$(terraform output -raw frontend_alb_url)
           echo "Staging URL: $URL"
           echo "url=$URL" >> $GITHUB_OUTPUT
-
-
   test-staging:
     runs-on: ubuntu-latest
     needs: deploy-staging
     steps:
       - uses: actions/checkout@v4
-
       - uses: hashicorp/setup-terraform@v3
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
-      # Volver a conectar con el state
       - working-directory: infra
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="key=todoapp/staging/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}"
-
-      # Obtener URL REAL desde Terraform
       - id: get_url
         working-directory: infra
         run: |
           URL=$(terraform output -raw frontend_alb_url)
           echo "Resolved URL: $URL"
           echo "url=$URL" >> $GITHUB_OUTPUT
-
       - run: pip install -r requirements.txt
-
       - run: |
           export APP_BASE_URL=${{ steps.get_url.outputs.url }}
           echo "APP_BASE_URL = $APP_BASE_URL"
           pytest tests/test_acceptance_app.py
-
       - run: |
           curl -X POST ${{ steps.get_url.outputs.url }}tasks \
           -H "Content-Type: application/json" \
           -d '{"title":"pipeline-test","description":"cd","status":"pending"}'
-
-
   deploy-production:
     runs-on: ubuntu-latest
     needs: test-staging
     steps:
       - uses: actions/checkout@v4
-
       - uses: hashicorp/setup-terraform@v3
-
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-
       - working-directory: infra
         run: |
           terraform init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="key=todoapp/production/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_DEFAULT_REGION }}"
-
       - working-directory: infra
         run: |
           terraform apply -auto-approve \
@@ -171,21 +170,52 @@ jobs:
             -var="vpc_id=${{ vars.VPC_ID }}" \
             -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
             -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
-            -var="backend_public_ip=${{ vars.BACKEND_PUBLIC_IP }}" \
+            -var="backend_public_ip=0.0.0.0" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
-
+      - name: Wait for backend task to start
+        run: sleep 60
+      - name: Get backend public IP
+        id: backend_ip
+        run: |
+          CLUSTER="todoapp-production-cluster"
+          SERVICE="todoapp-production-backend-service"
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster $CLUSTER \
+            --service-name $SERVICE \
+            --query 'taskArns[0]' \
+            --output text)
+          echo "Task ARN: $TASK_ARN"
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster $CLUSTER \
+            --tasks $TASK_ARN \
+            --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
+            --output text)
+          echo "ENI ID: $ENI_ID"
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --query "NetworkInterfaces[0].Association.PublicIp" \
+            --output text)
+          echo "Backend public IP: $PUBLIC_IP"
+          echo "ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
+      - working-directory: infra
+        run: |
+          terraform apply -auto-approve \
+            -var="environment_name=production" \
+            -var="backend_docker_image_uri=darango378/task-management-backend:latest" \
+            -var="frontend_docker_image_uri=darango378/task-management-frontend:latest" \
+            -var="vpc_id=${{ vars.VPC_ID }}" \
+            -var='subnet_ids=${{ vars.SUBNET_IDS }}' \
+            -var="lab_role_arn=${{ vars.LAB_ROLE_ARN }}" \
+            -var="backend_public_ip=${{ steps.backend_ip.outputs.ip }}" \
+            -var="secret_key=${{ secrets.SECRET_KEY }}"
       - run: sleep 60
-
       - id: prod_url
         working-directory: infra
         run: |
           URL=$(terraform output -raw frontend_alb_url)
           echo "Production URL: $URL"
           echo "url=$URL" >> $GITHUB_OUTPUT
-
       - run: curl ${{ steps.prod_url.outputs.url }}tasks
-
-
   rollback:
     runs-on: ubuntu-latest
     if: failure()
