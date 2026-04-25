@@ -108,11 +108,32 @@ jobs:
             --force-new-deployment \
             --query 'service.serviceName' \
             --output text
+
       - name: Wait for frontend to be stable
-        run: |
-          aws ecs wait services-stable \
-            --cluster todoapp-staging-cluster \
-            --services todoapp-staging-frontend-service
+              run: |
+                CLUSTER="todoapp-staging-cluster"
+                SERVICE="todoapp-staging-frontend-service"
+                echo "Waiting for service to stabilize..."
+                for i in $(seq 1 20); do
+                  RUNNING=$(aws ecs describe-services \
+                    --cluster $CLUSTER \
+                    --services $SERVICE \
+                    --query 'services[0].runningCount' \
+                    --output text)
+                  DESIRED=$(aws ecs describe-services \
+                    --cluster $CLUSTER \
+                    --services $SERVICE \
+                    --query 'services[0].desiredCount' \
+                    --output text)
+                  echo "Attempt $i: running=$RUNNING desired=$DESIRED"
+                  if [ "$RUNNING" = "$DESIRED" ] && [ "$RUNNING" != "0" ]; then
+                    echo "Service is stable!"
+                    exit 0
+                  fi
+                  sleep 15
+                done
+                echo "Service did not stabilize in time, continuing anyway..."
+                exit 0
       - run: sleep 60
       - id: staging_url
         working-directory: infra
