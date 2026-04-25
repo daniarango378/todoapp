@@ -65,7 +65,25 @@ jobs:
             -var="backend_public_ip=0.0.0.0" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
       - name: Wait for backend task to start
-        run: sleep 60
+        run: |
+          CLUSTER="todoapp-staging-cluster"
+          SERVICE="todoapp-staging-backend-service"
+          echo "Waiting for backend task to be running..."
+          for i in $(seq 1 20); do
+            TASK_ARN=$(aws ecs list-tasks \
+              --cluster $CLUSTER \
+              --service-name $SERVICE \
+              --query 'taskArns[0]' \
+              --output text)
+            echo "Attempt $i: TASK_ARN=$TASK_ARN"
+            if [ "$TASK_ARN" != "None" ] && [ -n "$TASK_ARN" ]; then
+              echo "Task found!"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Task never started"
+          exit 1
       - name: Get backend public IP
         id: backend_ip
         run: |
@@ -180,10 +198,10 @@ jobs:
           BACKEND_IP=$(curl -s ${URL}js/runtime-config.js | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
           echo "Backend IP extraida: $BACKEND_IP"
           echo "=== Test backend directo desde runner ==="
-          curl -s -o /dev/null -w "%{http_code}" http://${BACKEND_IP}:5001/tasks || echo "Backend no alcanzable"
+          curl -s -o /dev/null -w "%{http_code}" http://${BACKEND_IP}:5000/tasks || echo "Backend no alcanzable"
           echo ""
           echo "=== Respuesta del backend ==="
-          curl -s --max-time 10 http://${BACKEND_IP}:5001/tasks || echo "Sin respuesta"
+          curl -s --max-time 10 http://${BACKEND_IP}:5000/tasks || echo "Sin respuesta"
       - run: |
           export APP_BASE_URL=${{ steps.get_url.outputs.url }}
           echo "APP_BASE_URL = $APP_BASE_URL"
@@ -222,7 +240,25 @@ jobs:
             -var="backend_public_ip=0.0.0.0" \
             -var="secret_key=${{ secrets.SECRET_KEY }}"
       - name: Wait for backend task to start
-        run: sleep 60
+        run: |
+          CLUSTER="todoapp-production-cluster"
+          SERVICE="todoapp-production-backend-service"
+          echo "Waiting for backend task to be running..."
+          for i in $(seq 1 20); do
+            TASK_ARN=$(aws ecs list-tasks \
+              --cluster $CLUSTER \
+              --service-name $SERVICE \
+              --query 'taskArns[0]' \
+              --output text)
+            echo "Attempt $i: TASK_ARN=$TASK_ARN"
+            if [ "$TASK_ARN" != "None" ] && [ -n "$TASK_ARN" ]; then
+              echo "Task found!"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Task never started"
+          exit 1
       - name: Get backend public IP
         id: backend_ip
         run: |
